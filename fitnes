@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>coachex 3d</title>
+  <style>
+    :root{
+      --sky:#e6f3ff; --sky-2:#bfe1ff; --sky-3:#7fc2ff; --ink:#0b2a3f;
+      --card-bg:#ffffffd9; --shadow:0 10px 30px rgba(20,60,100,.15); --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);
+      background:radial-gradient(1200px 600px at 70% -10%, #fff, transparent), linear-gradient(180deg, var(--sky), #d7ecff);
+      display:grid;grid-template-rows:auto 1fr;gap:16px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:linear-gradient(180deg,#f4faff,#e9f5ff);border-bottom:1px solid #d8ebff;position:sticky;top:0;z-index:5}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:40px;height:40px;background:conic-gradient(from 180deg, var(--sky-3), #9ed0ff);border-radius:12px;box-shadow:var(--shadow);position:relative}
+    .logo:before{content:"";position:absolute;inset:6px;background:radial-gradient(circle at 30% 30%, #fff, #b7deff);border-radius:10px}
+    h1{font-size:20px;margin:0}
+    .container{display:grid;grid-template-columns:360px 1fr;gap:18px;padding:18px;max-width:1400px;width:100%;margin:0 auto}
+    @media (max-width:960px){.container{grid-template-columns:1fr}}
+    .card{background:var(--card-bg);backdrop-filter:blur(8px);border:1px solid #cfe6ff;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .controls{padding:18px;display:grid;gap:16px}
+    .row{display:grid;gap:8px}
+    label{font-weight:600}
+    input,select{padding:12px 14px;border:1px solid #bcdcff;border-radius:12px;background:#fff;font-size:15px;outline:none;width:100%}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    button{padding:12px 16px;border:0;border-radius:12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);background:var(--sky-3);color:#fff;letter-spacing:.2px;transition:transform .05s ease}
+    button:active{transform:translateY(1px)}
+    .ghost{background:#e5f2ff;color:#0b3a60}
+    .danger{background:#ef4444}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#e9f5ff;border:1px solid #cfe6ff;font-size:12px;font-weight:700;color:#0b3a60}
+    .scene-wrap{position:relative}
+    #scene{width:100%;height:520px;display:block;border-radius:var(--radius) var(--radius) 0 0}
+    .hud{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px;border-top:1px solid #cfe6ff}
+    .stat{background:#f6fbff;border:1px solid #d8ecff;border-radius:14px;padding:12px;display:grid;gap:4px;text-align:center}
+    .stat .big{font-size:26px;font-weight:800}
+    .howto{padding:16px 18px;display:grid;gap:10px}
+    .howto h2{font-size:18px;margin:0}
+    .steps{display:grid;gap:8px}
+    .steps li{margin-left:18px}
+    footer{padding:12px 18px;text-align:center;color:#0b3a60;opacity:.9}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>coackex 3D[lite]                                workouts are the keys of fitness</h1>
+    </div>
+    <div class="pill" id="statusPill">Ready · Idle</div>
+  </header>
+
+  <main class="container">
+    <section class="card controls" aria-label="Controls">
+      <div class="row">
+        <label for="exercise">Exercise</label>
+        <select id="exercise">
+          <option value="jumpingJacks">Jumping Jacks</option>
+          <option value="squats">Bodyweight Squats</option>
+          <option value="pushups">Push‑Ups</option>
+          <option value="armCircles">Arm Circles</option>
+          <option value="plank">Plank (Hold)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Mode</label>
+        <select id="mode">
+          <option value="time">Timed (seconds)</option>
+          <option value="reps">Reps</option>
+        </select>
+      </div>
+      <div class="row" id="timeRow">
+        <label for="seconds">Duration (seconds)</label>
+        <input id="seconds" type="number" min="10" step="5" value="30" />
+      </div>
+      <div class="row" id="repsRow" style="display:none">
+        <label for="reps">Repetitions</label>
+        <input id="reps" type="number" min="5" step="1" value="12" />
+      </div>
+      <div class="row">
+        <label for="pace">Pace</label>
+        <select id="pace">
+          <option value="slow">Slow</option>
+          <option value="medium" selected>Medium</option>
+          <option value="fast">Fast</option>
+        </select>
+      </div>
+      <div class="btns">
+        <button id="startBtn">Start</button>
+        <button class="ghost" id="pauseBtn">Pause</button>
+        <button class="danger" id="resetBtn">Reset</button>
+      </div>
+      <div class="row">
+        <label>Sound</label>
+        <div class="btns">
+          <button class="ghost" id="testBeep">Test Beep</button>
+          <button class="ghost" id="muteToggle">Mute: Off</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card scene-wrap" aria-label="3D Scene">
+      <canvas id="scene" aria-label="3D exercise demo"></canvas>
+      <div class="hud">
+        <div class="stat"><div>Timer</div><div class="big" id="timerText">00:00</div></div>
+        <div class="stat"><div>Reps</div><div class="big" id="repsText">0</div></div>
+        <div class="stat"><div>Exercise</div><div class="big" id="exerciseText">Jumping Jacks</div></div>
+      </div>
+      <div class="howto">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li>Select an exercise and choose Timed or Reps.</li>
+          <li>Press <b>Start</b>. The cartoon 3D coach will mirror the movement at your selected pace.</li>
+          <li>Beeps mark seconds or reps; Pause/Reset anytime.</li>
+        </ol>
+        <small>Note: Demo model (no camera tracking). Add webcam pose tracking later with MediaPipe.</small>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built with ❤ in sky blue. Stay hydrated and listen to your body.
+              <br>raju228raja@gmail.com
+              <br>   +923363662822
+  </footer>
+
+  <!-- Three.js CDN -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script>
+  // ======= Helpers & State =======
+  const $ = (s)=>document.querySelector(s);
+  const exerciseSel = $('#exercise');
+  const modeSel = $('#mode');
+  const timeRow = $('#timeRow');
+  const repsRow = $('#repsRow');
+  const secondsInput = $('#seconds');
+  const repsInput = $('#reps');
+  const paceSel = $('#pace');
+  const startBtn = $('#startBtn');
+  const pauseBtn = $('#pauseBtn');
+  const resetBtn = $('#resetBtn');
+  const testBeepBtn = $('#testBeep');
+  const muteToggle = $('#muteToggle');
+
+  const timerText = $('#timerText');
+  const repsText = $('#repsText');
+  const exerciseText = $('#exerciseText');
+  const statusPill = $('#statusPill');
+
+  const state = { running:false, paused:false, elapsed:0, targetSeconds:+secondsInput.value,
+    targetReps:+repsInput.value, repsDone:0, lastBeep:0, mute:false, mode:'time', pace:'medium', selected:'jumpingJacks' };
+
+  try{ const saved = JSON.parse(localStorage.getItem('coach-prefs')||'{}'); if(saved){
+    if(saved.selected) exerciseSel.value = saved.selected; if(saved.mode) modeSel.value = saved.mode;
+    if(saved.seconds) secondsInput.value = saved.seconds; if(saved.reps) repsInput.value = saved.reps;
+    if(saved.pace) paceSel.value = saved.pace; } }catch(e){}
+  function savePrefs(){ localStorage.setItem('coach-prefs', JSON.stringify({ selected:exerciseSel.value, mode:modeSel.value, seconds:+secondsInput.value, reps:+repsInput.value, pace:paceSel.value })); }
+
+  // ======= Beeper =======
+  let actx; function beep(freq=880,len=0.07,type='sine'){ if(state.mute) return; actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(); const g=actx.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=0.12; o.connect(g); g.connect(actx.destination); o.start(); setTimeout(()=>o.stop(), len*1000); }
+  testBeepBtn.onclick=()=>beep(); muteToggle.onclick=()=>{ state.mute=!state.mute; muteToggle.textContent=`Mute: ${state.mute?'On':'Off'}` }
+
+  // ======= Timer / Loop =======
+  let rafId; let lastTime=0; function fmtTime(s){ s=Math.max(0,Math.floor(s)); const m=String(Math.floor(s/60)).padStart(2,'0'); const r=String(s%60).padStart(2,'0'); return `${m}:${r}` }
+  function setStatus(t){ statusPill.textContent=t }
+  function start(){ state.running=true; state.paused=false; lastTime=performance.now(); setStatus('Running'); loop(); }
+  function pause(){ state.paused=!state.paused; setStatus(state.paused?'Paused':'Running'); if(!state.paused){ lastTime=performance.now(); loop(); } }
+  function reset(){ state.running=false; state.paused=false; cancelAnimationFrame(rafId); state.elapsed=0; state.repsDone=0; updateHUD(); setStatus('Ready · Idle'); poseNeutral(); }
+  function updateHUD(){ timerText.textContent=fmtTime(state.elapsed); repsText.textContent=state.repsDone; const name={jumpingJacks:'Jumping Jacks',squats:'Squats',pushups:'Push‑Ups',plank:'Plank',armCircles:'Arm Circles'}[state.selected]; exerciseText.textContent=name; }
+  function paceMul(){ return {slow:0.75,medium:1.0,fast:1.35}[state.pace] }
+  function loop(){ rafId=requestAnimationFrame(loop); const now=performance.now(); const dt=(now-lastTime)/1000; lastTime=now; if(state.paused||!state.running) return; state.elapsed+=dt; animateCoach(dt); if(state.mode==='time'){ if(Math.floor(state.elapsed)>state.lastBeep){ state.lastBeep=Math.floor(state.elapsed); beep(880,0.04)} if(state.elapsed>=state.targetSeconds){ finish(); } } updateHUD(); renderer.render(scene,camera); }
+  function finish(){ cancelAnimationFrame(rafId); state.running=false; setStatus('Complete!'); beep(990,.06); setTimeout(()=>beep(770,.06),120); setTimeout(()=>beep(1240,.08),240); }
+  function repTick(){ if(state.mode==='reps'){ const prev=state.repsDone; state.repsDone+=1; beep(920,.05,'triangle'); if(state.repsDone>=state.targetReps){ finish(); } if(prev!==state.repsDone) updateHUD(); } }
+
+  modeSel.onchange=()=>{ state.mode=modeSel.value; timeRow.style.display=state.mode==='time'?'grid':'none'; repsRow.style.display=state.mode==='reps'?'grid':'none'; savePrefs(); }
+  exerciseSel.onchange=()=>{ state.selected=exerciseSel.value; updateHUD(); savePrefs(); poseNeutral(true); }
+  secondsInput.oninput=()=>{ state.targetSeconds=+secondsInput.value; savePrefs(); }
+  repsInput.oninput=()=>{ state.targetReps=+repsInput.value; savePrefs(); }
+  paceSel.onchange=()=>{ state.pace=paceSel.value; savePrefs(); }
+  startBtn.onclick=()=>{ if(!state.running){ state.targetSeconds=+secondsInput.value; state.targetReps=+repsInput.value; state.repsDone=0; state.elapsed=0; state.lastBeep=0; start(); } else if(state.paused){ pause(); } }
+  pauseBtn.onclick=()=>{ if(state.running) pause(); }
+  resetBtn.onclick=()=> reset();
+
+  // ======= Three.js Scene =======
+  const canvas=document.getElementById('scene');
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0xe6f3ff);
+  const camera=new THREE.PerspectiveCamera(45, canvas.clientWidth/520, 0.1, 100); camera.position.set(0,1.6,4.8);
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  function size(){ const w=canvas.clientWidth,h=520; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  size(); window.addEventListener('resize', size);
+
+  // Lights
+  const hemi=new THREE.HemisphereLight(0xffffff,0x99ccff,1.0); scene.add(hemi);
+  const dir=new THREE.DirectionalLight(0xffffff,0.7); dir.position.set(5,6,3); scene.add(dir);
+
+  // Floor (toon)
+  const floorGeo=new THREE.PlaneGeometry(20,20);
+  const floorMat=new THREE.MeshToonMaterial({color:0xdaf0ff});
+  const floor=new THREE.Mesh(floorGeo,floorMat); floor.rotation.x=-Math.PI/2; floor.position.y=0; scene.add(floor);
+
+  // ======= Toon box helper (adds outline) =======
+  function box(w,h,d,col){
+    // Per-mesh 4-step gradient for toon shading
+    const c=document.createElement('canvas'); c.width=1; c.height=4; const x=c.getContext('2d');
+    ['#ffffff','#cfe6ff','#9fd0ff','#6fbaff'].forEach((s,i)=>{x.fillStyle=s; x.fillRect(0,i,1,1);});
+    const gradTex=new THREE.CanvasTexture(c); gradTex.minFilter=THREE.NearestFilter; gradTex.magFilter=THREE.NearestFilter; gradTex.generateMipmaps=false;
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshToonMaterial({color:col,gradientMap:gradTex}));
+    const outline=new THREE.Mesh(mesh.geometry.clone(), new THREE.MeshBasicMaterial({color:0x0b2a60, side:THREE.BackSide}));
+    outline.scale.set(1.03,1.03,1.03); mesh.add(outline);
+    return mesh;
+  }
+
+  // ======= Cartoon Humanoid =======
+  const group=new THREE.Group(); scene.add(group);
+  const skin=0xffe0bd, shirt=0x7fc2ff, pants=0x4da3ff, shoe=0x0b3a60;
+  // Torso & hips
+  const torso=box(0.8,1.1,0.35,shirt); torso.position.y=1.8; group.add(torso);
+  const hips=box(0.7,0.3,0.35,pants); hips.position.y=1.25; group.add(hips);
+  // Head + face
+  const head=box(0.5,0.5,0.45,skin); head.position.y=2.35; group.add(head);
+  const eyeGeo=new THREE.SphereGeometry(0.04,12,12); const eyeMat=new THREE.MeshBasicMaterial({color:0x0b2a60});
+  const eyeL=new THREE.Mesh(eyeGeo,eyeMat); const eyeR=new THREE.Mesh(eyeGeo,eyeMat);
+  eyeL.position.set(-0.12,0.06,0.26); eyeR.position.set(0.12,0.06,0.26); head.add(eyeL,eyeR);
+  const mouth=new THREE.Mesh(new THREE.TorusGeometry(0.10,0.01,8,20,Math.PI), new THREE.MeshBasicMaterial({color:0x0b2a60}));
+  mouth.rotation.x=Math.PI/2; mouth.position.set(0,-0.08,0.23); head.add(mouth);
+
+  function limbPair(lenU,lenL,thick,colU,colL){
+    const shoulderL=new THREE.Group(), shoulderR=new THREE.Group();
+    const upperL=box(thick,lenU,thick,colU); upperL.position.y=-lenU/2; shoulderL.add(upperL);
+    const upperR=box(thick,lenU,thick,colU); upperR.position.y=-lenU/2; shoulderR.add(upperR);
+    const elbowL=new THREE.Group(); elbowL.position.y=-lenU; shoulderL.add(elbowL);
+    const elbowR=new THREE.Group(); elbowR.position.y=-lenU; shoulderR.add(elbowR);
+    const lowerL=box(thick*.9,lenL,thick*.9,colL); lowerL.position.y=-lenL/2; elbowL.add(lowerL);
+    const lowerR=box(thick*.9,lenL,thick*.9,colL); lowerR.position.y=-lenL/2; elbowR.add(lowerR);
+    return {shoulderL,shoulderR,elbowL,elbowR,upperL,upperR,lowerL,lowerR}
+  }
+  const arm=limbPair(0.6,0.55,0.18,shirt,skin); arm.shoulderL.position.set(-0.55,2.05,0); arm.shoulderR.position.set(0.55,2.05,0); group.add(arm.shoulderL, arm.shoulderR);
+
+  function legPair(lenU,lenL,thick,colU,colL){
+    const hipL=new THREE.Group(), hipR=new THREE.Group();
+    const upperL=box(thick,lenU,thick,colU); upperL.position.y=-lenU/2; hipL.add(upperL);
+    const upperR=box(thick,lenU,thick,colU); upperR.position.y=-lenU/2; hipR.add(upperR);
+    const kneeL=new THREE.Group(); kneeL.position.y=-lenU; hipL.add(kneeL);
+    const kneeR=new THREE.Group(); kneeR.position.y=-lenU; hipR.add(kneeR);
+    const lowerL=box(thick*.95,lenL,thick*.95,colL); lowerL.position.y=-lenL/2; kneeL.add(lowerL);
+    const lowerR=box(thick*.95,lenL,thick*.95,colL); lowerR.position.y=-lenL/2; kneeR.add(lowerR);
+    const footL=box(thick*1.2,0.12,0.28,shoe); footL.position.set(0,-lenL,0.05); kneeL.add(footL);
+    const footR=box(thick*1.2,0.12,0.28,shoe); footR.position.set(0,-lenL,0.05); kneeR.add(footR);
+    return {hipL,hipR,kneeL,kneeR,upperL,upperR,lowerL,lowerR}
+  }
+  const leg=legPair(0.6,0.62,0.22,pants,pants); leg.hipL.position.set(-0.23,1.4,0); leg.hipR.position.set(0.23,1.4,0); group.add(leg.hipL, leg.hipR);
+
+  function poseNeutral(resetRotOnly=false){
+    const parts=[torso,hips,head, arm.shoulderL,arm.shoulderR,arm.elbowL,arm.elbowR, leg.hipL,leg.hipR,leg.kneeL,leg.kneeR];
+    parts.forEach(p=>{ p.rotation.set(0,0,0); }); if(!resetRotOnly){ group.position.set(0,0,0); group.rotation.set(0,0,0); }
+  }
+  poseNeutral();
+
+  // ======= Animation =======
+  let cycle=0, cycleDir=1, cycleSpeed=1; const D=(deg)=>deg*Math.PI/180; function smoothSine01(t){ return 0.5-0.5*Math.cos(2*Math.PI*t); }
+  function animateCoach(dt){
+    const base={jumpingJacks:1.6, squats:1.1, pushups:0.9, plank:0.2, armCircles:1.4}[state.selected]||1.2;
+    cycleSpeed=base*paceMul(); cycle+=dt*cycleSpeed*cycleDir; if(state.mode==='reps'){ if(cycle>=1){ cycle=0; repTick(); } } else { if(cycle>=1) cycle-=1; }
+    poseNeutral(true);
+    if(state.selected==='jumpingJacks') poseJumpingJacks(cycle);
+    else if(state.selected==='squats')   poseSquats(cycle);
+    else if(state.selected==='pushups')  posePushups(cycle);
+    else if(state.selected==='plank')    posePlank();
+    else if(state.selected==='armCircles') poseArmCircles(cycle);
+  }
+  function poseJumpingJacks(t){ const s=smoothSine01(t); leg.hipL.rotation.z=D(12+s*28); leg.hipR.rotation.z=D(-12-s*28); leg.kneeL.rotation.x=D(4-s*6); leg.kneeR.rotation.x=D(4-s*6); arm.shoulderL.rotation.z=D(-20 - s*140); arm.shoulderR.rotation.z=D(20 + s*140); arm.elbowL.rotation.z=D(s*5); arm.elbowR.rotation.z=D(-s*5); group.position.y=0.05*Math.sin(2*Math.PI*t); }
+  function poseSquats(t){ const s=smoothSine01(t); const depth=D(50)*s; leg.kneeL.rotation.x=depth; leg.kneeR.rotation.x=depth; leg.hipL.rotation.x=D(-15)*s; leg.hipR.rotation.x=D(-15)*s; group.position.y=-0.25*s; torso.rotation.x=D(8)*s; arm.shoulderL.rotation.x=D(-30)*s; arm.shoulderR.rotation.x=D(-30)*s; }
+  function posePushups(t){ const s=smoothSine01(t); group.position.set(0,-0.6,0); group.rotation.x=D(35); arm.elbowL.rotation.x=D(60)*s; arm.elbowR.rotation.x=D(60)*s; torso.position.y=1.8-0.08*s; }
+  function posePlank(){ const t=(performance.now()%4000)/4000; const breathe=0.02*Math.sin(2*Math.PI*t); group.position.set(0,-0.5,0); group.rotation.x=D(20); torso.position.y=1.8+breathe; head.position.y=2.35+breathe*0.6; }
+  function poseArmCircles(t){ const angle=2*Math.PI*t; arm.shoulderL.rotation.z=-angle; arm.shoulderR.rotation.z=angle; }
+
+  renderer.render(scene,camera);
+  window.addEventListener('keydown',(e)=>{ if(e.key===' '){ e.preventDefault(); if(!state.running) start(); else pause(); } if(e.key==='r'){ reset(); } });
+  state.mode=modeSel.value; state.selected=exerciseSel.value; state.pace=paceSel.value; updateHUD();
+  </script>
+</body>
+</html>
+
+
+
+    
